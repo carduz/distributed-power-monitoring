@@ -3,6 +3,7 @@
  */
 "use strict";
 let client = require('socket.io-client');
+let csvStream = require('./csvStream');
 if(process.argv.length != 3){
     console.error('Usage node worker.js {master address}');
     process.exit();
@@ -48,12 +49,18 @@ function connectToWorkers(data){
 //TODO insert try...catch to avoid problems
 
 //TODO sync with init, don't recall on change workers but adapat itself
+//TODO how to get the answer? maybe the master should have a list of tasks
+//TODO close all at the end
 function sendWorks(){
     "use strict";
     let i = 0;
     let num = workers.length;
-    emulateLongStreaming((job)=>{
+    /*emulateLongStreaming((job)=>{
         workers[i++%num].connection.emit('job', job);
+    });*/
+    //TODO header in stderr
+    csvStream((record)=>{
+        workers[i++%num].connection.emit('job', JSON.stringify(record));
     });
 }
 
@@ -73,7 +80,7 @@ function emulateLongStreaming(callback, jobId){
         },1000);
 }
 
-//TODO manage disconnection
+//TODO manage disconnection, retry reconnect?
 function connectPromise(address){
     return new Promise((resolve, reject)=> {
         let clientIO = client(address);

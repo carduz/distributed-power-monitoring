@@ -17,7 +17,9 @@
   },
   "homepage": "https://github.com/carduz/distributed-power-monitoring#readme",
   "dependencies": {
+    "csv-parse": "^1.1.7",
     "socket.io": "^1.7.2",
-    "socket.io-client": "^1.7.2"
+    "socket.io-client": "^1.7.2",
+    "stream-transform": "^0.1.1"
   }
 }
