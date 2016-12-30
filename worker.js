@@ -15,6 +15,7 @@ var socket = require('socket.io-client')(process.argv[2]);
 
 socket.on('connect', ()=>{
     console.log('connected');
+    socket.emit('worker');
 });
 socket.on('event', (data)=>{});
 socket.on('disconnect', ()=>{
@@ -33,5 +34,6 @@ socket.on('port', (data)=>{
     if(actived)
         return ;
     server.listen(data);
+    console.log('Local server open');
     actived = true;
 });
