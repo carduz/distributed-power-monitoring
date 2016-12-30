@@ -15,5 +15,9 @@
   "bugs": {
     "url": "https://github.com/carduz/distributed-power-monitoring/issues"
   },
-  "homepage": "https://github.com/carduz/distributed-power-monitoring#readme"
+  "homepage": "https://github.com/carduz/distributed-power-monitoring#readme",
+  "dependencies": {
+    "socket.io": "^1.7.2",
+    "socket.io-client": "^1.7.2"
+  }
 }
