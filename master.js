@@ -35,3 +35,4 @@ io.on('connection', (client)=>{
 });
 
 server.listen(BASE_PORT);
+console.log('Master on port', BASE_PORT);

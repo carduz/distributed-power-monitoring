@@ -13,5 +13,6 @@ module.exports = function(recordCallback) {
         callback(null, record.join(' ') + '\n');
         //  }, 500);
     }, {parallel: 10});
-    process.stdin.pipe(parser).pipe(transformer);//.pipe(process.stdout);
+    //TODO emulate finish of the last pipe
+    process.stdin.pipe(parser).pipe(transformer).pipe(process.stdout);
 }
