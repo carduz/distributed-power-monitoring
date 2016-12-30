@@ -5,6 +5,7 @@
 let server = require('http').createServer();
 let io = require('socket.io')(server);
 let actived = false;
+let functions = require('./functions');
 
 if(process.argv.length != 3){
     console.error('Usage node worker.js {master address}');
@@ -29,11 +30,27 @@ socket.on('disconnect', ()=>{
 
 //TODO socket created listeners
 
+let workerData = {};
 socket.on('port', (data)=>{
     //TODO restart server changing port
     if(actived)
         return ;
-    server.listen(data);
-    console.log('Local server open');
+    workerData = data;
+    server.listen(data.port);
+    console.log('Local server open on port', data.port);
     actived = true;
+});
+let functionPointer = null;
+
+socket.on('function', (data)=>{
+    functionPointer = functions[data];
+});
+
+io.on('connection', (client)=> {
+    console.log('client connected');
+    client.on('job', (data)=> {
+        if (!functionPointer)
+            return;
+        functionPointer(workerData.id, data);
+    });
 });
