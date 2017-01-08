@@ -44,6 +44,8 @@ let functionPointer = null;
 
 socket.on('function', (data)=>{
     functionPointer = functions[data];
+    console.log('function set');
+    socket.emit('function set');
 });
 
 io.on('connection', (client)=> {
