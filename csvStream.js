@@ -8,8 +8,10 @@ const spawn = require('child_process').spawn;
 var parser = parse();
 
 
-function getStream(cb) {
-    var ws = new stream;
+function getStream(cb, name) {
+    "use strict";
+    name = name || '';
+    let ws = new stream;
     ws.writable = true;
     ws.bytes = 0;
 
@@ -22,19 +24,20 @@ function getStream(cb) {
         if (arguments.length) ws.write(buf);
         ws.writable = false;
 
-        console.log('bytes length: ' + ws.bytes);
+        console.log(name, 'bytes length: ' + ws.bytes);
     };
     return ws;
 }
 
 function locker(cb, promise){
     "use strict";
-    var unlocked = false;
+    let unlocked = false;
     return through2.obj(function(chunk, enc, callback) {
         var stream = this;
         cb();
         if (!unlocked) {
             promise.then(()=>{
+                unlocked = true;
                 stream.push(chunk);
                 callback();
             });
@@ -60,14 +63,14 @@ module.exports =
             let generator = spawn('java', ['-jar', 'data-generator.jar', seconds]);
             let data = '';
             let solved = false;
-            generator.stderr.pipe(getStream(chunk=>data+=chunk));
+            generator.stderr.pipe(getStream(chunk=>data+=chunk, 'header'));
             generator.stdout.pipe(parser).pipe(locker(()=>{
                 if(!solved){
                     solved = true;
                     resolve(data);
                 }
             }, lockPromise.promise))
-                .pipe(getStream(record=>recordCallback(record))); //this way to call the new version of recordCallback
+                .pipe(getStream(record=>recordCallback(record), 'data')); //this way to call the new version of recordCallback
         }),
             onData: function(cb){
                 "use strict";
