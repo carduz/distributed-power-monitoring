@@ -12,5 +12,5 @@ if(process.argv.length != 4){
 let csv = csvStream(process.argv[3]);
 csv.header.then(keys=> {
     console.log('keys', keys);
-    clientLib(process.argv[2], [new functionClass('shuffle', [keys], [keys])], csv.onData);
+    clientLib(process.argv[2], [new functionClass('print', [keys], [keys]), new functionClass('print', [keys], [keys])], csv.onData);
 });

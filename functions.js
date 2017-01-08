@@ -8,12 +8,11 @@ class functionClass{
         this._handler = handler || function(){};
     }
 
-    setup(){
-        return this._setup();
+    setup(functions, index, parameters){
+        return this._setup(functions, index, parameters);
     }
 
     handler(worker, data, parameters){
-        console.log(this);
         return this._handler(worker, data, parameters);
     }
 }
@@ -24,7 +23,13 @@ module.exports = {
         "use strict";
         console.log(worker, data);
     }),
-    shuffle: new functionClass(null, (worker, data, parameters)=>{
+    shuffle: new functionClass((functions, index, parameters)=>{
+        if(index>=(functions.length-1))
+            return ;
+        functions[functions.length-1].workers.forEach(value=>{
+            value.info = parameters[0];
+        });
+    }, (worker, data, parameters)=>{
         "use strict";
         console.log(worker, data, parameters);
     })
