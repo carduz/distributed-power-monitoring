@@ -4,6 +4,7 @@
 "use strict";
 let csvStream = require('./csvStream');
 let clientLib = require('./clientLib');
+let functionClass = require('./function');
 if(process.argv.length != 4){
     console.error('Usage node client.js {master address} {seconds}');
     process.exit();
@@ -11,5 +12,5 @@ if(process.argv.length != 4){
 let csv = csvStream(process.argv[3]);
 csv.header.then(keys=> {
     console.log('keys', keys);
-    clientLib(process.argv[2], ['print'],keys, csv.onData);
+    clientLib(process.argv[2], [new functionClass('shuffle', [keys], [keys])], csv.onData);
 });

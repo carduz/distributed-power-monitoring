@@ -2,7 +2,7 @@
  * Created by claudio on 30/12/16.
  */
 "use strict";
-module.exports = function (address, functions, keys, dataFuntion) {
+module.exports = function (address, functions, dataFuntion) {
     let client = require('socket.io-client');
 
     let socket = client(address);

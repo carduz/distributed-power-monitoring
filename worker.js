@@ -53,6 +53,6 @@ io.on('connection', (client)=> {
     client.on('job', (data)=> {
         if (!functionPointer)
             return;
-        functionPointer(workerData.id, data);
+        functionPointer.handler(workerData.id, data);
     });
 });

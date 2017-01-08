@@ -41,7 +41,7 @@ io.on('connection', (client)=>{
     });
 
     client.on('client',(functions)=>{
-        //TODO promise all of data received from workers
+        //this is a sort of Promise.all
         allFunctionsSet(()=>{
             client.emit('workers', Object.keys(workers).map(key=>'http://localhost:'+workers[key].port)); //bad way
         });
