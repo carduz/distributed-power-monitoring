@@ -8,4 +8,7 @@ if(process.argv.length != 4){
     console.error('Usage node client.js {master address} {seconds}');
     process.exit();
 }
-clientLib(process.argv[2], ['print'], csvStream(process.argv[3]));
+let csv = csvStream(process.argv[3]);
+csv.header.then(keys=> {
+    clientLib(process.argv[2], ['print'],keys, csv.onData);
+});
