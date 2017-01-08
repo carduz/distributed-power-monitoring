@@ -1,11 +1,12 @@
 /**
  * Created by claudio on 30/12/16.
  */
-var parse = require('csv-parse');
+var csvParse = require('csv-parse');
 var stream = require('stream');
 var through2 = require('through2');
 const spawn = require('child_process').spawn;
-var parser = parse();
+var csvParser = csvParse();
+var Parser = require("jison").Parser;
 
 
 function getStream(cb, name) {
@@ -48,6 +49,67 @@ function locker(cb, promise){
     });
 }
 
+function parseKeys(keys){
+    "use strict";
+    let grammar = {
+        "lex": {
+            "rules": [
+                //["\\n",                      "return 'LINE';"],
+                ["\\s+",                    "/* skip whitespace */"],
+                ["[a-zA-Z0-9 ]+",           "return 'STRING';"],
+                [",",                       "return 'COMMA';"],
+                ["\\{",                     "return 'LB';"],
+                ["\\}",                     "return 'RB';"],
+                ["$",                       "return 'EOF';"]
+            ]
+        },
+
+        "bnf": {
+            "expressions" :[[ "objects EOF",   "return '{'+$1+'}';"  ]],
+
+            /*"lines" : [
+                ['object LINE line', "$$ = $1 +', '+ $3"],
+                ['object line', "$$ = $1 +', '+ $2"],
+                ['object LINE', "$$ = $1"],
+                ['object', "$$ = $1"],
+            ],*/
+            "objects" : [
+                ['object objects', "$$ = $1 +', '+ $2"],
+                ['object', "$$ = $1"],
+            ],
+
+            "object" : [
+                [ "STRING LB object_content RB",   "$$ = '\"'+$1.trim()+'\": {'+$3+'}';" ],
+                [ "STRING LB last RB",   "$$ = '\"'+$1.trim()+'\": ['+$3+']';" ],
+            ],
+
+            "object_content" : [
+                [ "object COMMA object_content",   "$$ = $1+', '+$3;" ],
+                [ "object COMMA",   "$$ = $1;" ],
+                [ "object",   "$$ = $1;" ],
+            ],
+
+            'last' : [
+                [ "STRING COMMA last",   "$$ = '\"'+$1+'\", '+$3" ],
+                [ "STRING COMMA",   "$$ = '\"'+$1+'\"';" ],
+                [ "STRING",   "$$ = '\"'+$1+'\"';" ],
+            ]
+        }
+    };
+
+    let ret = {};
+    try {
+        let parser = new Parser(grammar);
+        let parsed = parser.parse(keys);
+        if (parsed)
+            ret = parsed;
+    }catch(e)
+    {
+        console.error('Parser error', e.message);
+    }
+    return ret;
+}
+
 module.exports =
     function (seconds) {
         "use strict";
@@ -64,10 +126,10 @@ module.exports =
             let data = '';
             let solved = false;
             generator.stderr.pipe(getStream(chunk=>data+=chunk, 'header'));
-            generator.stdout.pipe(parser).pipe(locker(()=>{
+            generator.stdout.pipe(csvParser).pipe(locker(()=>{
                 if(!solved){
                     solved = true;
-                    resolve(data);
+                    resolve(parseKeys(data));
                 }
             }, lockPromise.promise))
                 .pipe(getStream(record=>recordCallback(record), 'data')); //this way to call the new version of recordCallback
