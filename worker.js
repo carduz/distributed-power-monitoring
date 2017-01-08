@@ -53,6 +53,11 @@ io.on('connection', (client)=> {
     client.on('job', (data)=> {
         if (!functionPointer)
             return;
-        functionPointer.handler(workerData.id, data);
+        try {
+            functionPointer.handler(workerData.id, data);
+        }catch(e)
+        {
+            console.error(e);
+        }
     });
 });

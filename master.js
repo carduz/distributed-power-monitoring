@@ -95,7 +95,12 @@ function assignFunctions(functionsNames){
 
     //call setup
     functionsWithWorkers.forEach((value,key)=>{
-        functions[value.functionName.name].setup(functionsWithWorkers, key, value.setupParameters);
+        try{
+            functions[value.functionName.name].setup(functionsWithWorkers, key, value.functionName.setupParameters);
+        }catch(e)
+        {
+            console.error(e.stack);
+        }
     });
 
     //TODO pass order and other info, like "info"

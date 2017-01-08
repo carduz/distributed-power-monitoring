@@ -102,7 +102,7 @@ function parseKeys(keys){
         let parser = new Parser(grammar);
         let parsed = parser.parse(keys);
         if (parsed)
-            ret = parsed;
+            ret = JSON.parse(parsed);
     }catch(e)
     {
         console.error('Parser error', e.message);
