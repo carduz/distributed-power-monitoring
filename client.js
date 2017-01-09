@@ -22,3 +22,7 @@ function mapper(value){
     ret[value[2]] = value;
     return ret;
 }
+
+//TODO do a thing like worker communication delte for client
+//TODO do a system to return data to client
+//TODO recalibrate network during operation?

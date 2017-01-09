@@ -18,6 +18,10 @@ class Worker{
         this.parameters = [];
         this.functionSetCB = function(){};
     }
+
+    getAddress(){
+        return 'http://localhost:'+this.port;
+    }
 }
 
 //TODO do this thing based on real address, a sort of map realAddress -> portCounter
@@ -30,15 +34,27 @@ io.on('connection', (client)=>{
     client.on('event', (data)=>{});
     client.on('disconnect', ()=>{
         console.log('Client disconnected', id);
-        if(worker)
+        //client.close(); //TODO why not work? do it for normal client?
+        if(worker) {
             delete workers[id];
+            emitAllWorkers('worker', 'delete', id);
+        }
     });
     client.on('worker',()=>{
         worker = true;
         port = portCounter++;
-        workers[id] = new Worker(client, port);
+        let tmpWorker = new Worker(client, port);
+
+        //send already stored
+        Object.keys(workers).forEach(key=>{
+            let worker = workers[key];
+            client.emit('worker', 'add', key, worker.getAddress());
+        });
+
+        emitAllWorkers('worker', 'add', id, tmpWorker.getAddress());
+        workers[id] = tmpWorker;
         client.emit('port', {port:port, id: id});
-        client.emit('function', setFunction(workers[id])); //set function in a bad way
+        client.emit('function', setFunction()(workers[id])); //set function in a bad way
     });
     client.on('function set',()=> {
         workers[id].functionSetCB(); //this way to call the new version of functionSetCB
@@ -47,7 +63,7 @@ io.on('connection', (client)=>{
     client.on('client',(functions)=>{
         //this is a sort of Promise.all
         allFunctionsSet(()=>{
-            client.emit('workers', Object.keys(workers).filter(key=>+workers[key].order==0).map(key=>'http://localhost:'+workers[key].port)); //bad way
+            client.emit('workers', Object.keys(workers).filter(key=>+workers[key].order==0).map(key=>workers[key].getAddress())); //bad way
         });
         assignFunctions(functions);
     });
@@ -71,10 +87,23 @@ function allFunctionsSet(cb) {
 }
 
 function emitAllWorkers(channel, msg){
+    "use strict";
     msg = msg || '';
     Object.keys(workers).forEach((key)=>{
         let value = workers[key];
-        value.client.emit(channel, msg(value));
+        let parameters = [];
+        parameters.push(channel);
+        let data = '';
+        if(typeof msg == 'function')
+            data = msg(value);
+        else
+            data = msg;
+        if(Array.isArray(data))
+            parameters = parameters.concat(data);
+        else
+            parameters.push(data);
+        parameters = parameters.concat(Array.prototype.slice.call(arguments, 2));
+        value.client.emit.apply(value.client, parameters);
     });
 }
 
@@ -105,13 +134,21 @@ function assignFunctions(functionsNames){
         }
     });
 
-    setAllFunctions();
+    setAllFunctions(functionsWithWorkers);
 }
 
-function setAllFunctions(){
-    emitAllWorkers('function', setFunction);
+function setAllFunctions(functions){
+    emitAllWorkers('function', setFunction(functions));
 }
 
-function setFunction(worker){
-    return {"function": worker.function, info: worker.info, order: worker.order, parameters: worker.parameters};
+function setFunction(functions){
+    functions = functions || [];
+    functions = functions.map(value=>{
+        let ret = value;
+        ret.workers = value.workers.map(worker=>worker.client.id);
+        return ret;
+    });
+    return function(worker) {
+        return {"function": worker.function, info: worker.info, order: worker.order, parameters: worker.parameters, functions: functions};
+    }
 }

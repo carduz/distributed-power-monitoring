@@ -3,6 +3,7 @@
  */
 "use strict";
 module.exports = function (address, functions, dataFuntion) {
+    let utils = require('./utils');
     let client = require('socket.io-client');
 
     let socket = client(address);
@@ -33,7 +34,8 @@ module.exports = function (address, functions, dataFuntion) {
             });
             if(res.length)
                 return Promise.resolve(res[0]);
-            return connectPromise(value);
+            //TODO manage disconnection, retry reconnect?
+            return utils.connectPromise(value);
         })).then((data)=>{
             workers=data;
             console.log('connected to workers');
@@ -54,16 +56,6 @@ module.exports = function (address, functions, dataFuntion) {
         //TODO header in stderr
         dataFuntion((record)=>{
             workers[i++%num].connection.emit('job', record);
-        });
-    }
-
-    //TODO manage disconnection, retry reconnect?
-    function connectPromise(address){
-        return new Promise((resolve, reject)=> {
-            let clientIO = client(address);
-            clientIO.on('connect', ()=> {
-                resolve({address: address, connection: clientIO});
-            });
         });
     }
 };
