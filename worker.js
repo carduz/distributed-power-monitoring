@@ -41,10 +41,12 @@ socket.on('port', (data)=>{
     actived = true;
 });
 let functionPointer = null;
+let dataReceived;
 
 socket.on('function', (data)=>{
-    functionPointer = functions[data];
-    console.log('function set');
+    dataReceived = data;
+    functionPointer = functions[data.function];
+    console.log('function set', data);
     socket.emit('function set');
 });
 

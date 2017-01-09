@@ -37,7 +37,7 @@ io.on('connection', (client)=>{
         port = portCounter++;
         workers[id] = new Worker(client, port);
         client.emit('port', {port:port, id: id});
-        client.emit('function', 'print'); //set function in a bad way
+        client.emit('function', setFunction(workers[id])); //set function in a bad way
     });
     client.on('function set',()=> {
         workers[id].functionSetCB(); //this way to call the new version of functionSetCB
@@ -103,6 +103,13 @@ function assignFunctions(functionsNames){
         }
     });
 
-    //TODO pass order and other info, like "info"
-    emitAllWorkers('function', (worker)=>worker.function);
+    setAllFunctions();
+}
+
+function setAllFunctions(){
+    emitAllWorkers('function', setFunction);
+}
+
+function setFunction(worker){
+    return {"function": worker.function, info: worker.info, order: worker.order};
 }
