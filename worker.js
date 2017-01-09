@@ -45,18 +45,25 @@ let dataReceived;
 
 socket.on('function', (data)=>{
     dataReceived = data;
-    functionPointer = functions[data.function];
+    let functionObj = functions[data.function];
+    try {
+        functionPointer = functionObj.handler(workerData.id, dataReceived.parameters);
+    }catch(e)
+    {
+        console.error(e.stack);
+    }
     console.log('function set', data);
     socket.emit('function set');
 });
 
 io.on('connection', (client)=> {
     console.log('client connected');
+
     client.on('job', (data)=> {
         if (!functionPointer)
             return;
         try {
-            functionPointer.handler(workerData.id, data, dataReceived.parameters);
+            functionPointer(data);
         }catch(e)
         {
             console.error(e.stack);
