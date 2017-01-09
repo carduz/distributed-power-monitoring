@@ -53,7 +53,7 @@ module.exports = function (address, functions, dataFuntion) {
         let num = workers.length;
         //TODO header in stderr
         dataFuntion((record)=>{
-            workers[i++%num].connection.emit('job', JSON.stringify(record));
+            workers[i++%num].connection.emit('job', record);
         });
     }
 

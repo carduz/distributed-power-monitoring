@@ -15,6 +15,7 @@ class Worker{
         this.order = 0;
         this.function = 'print';
         this.info = {};
+        this.parameters = [];
         this.functionSetCB = function(){};
     }
 }
@@ -90,6 +91,7 @@ function assignFunctions(functionsNames){
         let functionObj = functionsWithWorkers[order];
         functionObj.workers.push(value);
         value.order = order;
+        value.parameters = functionObj.functionName.handlerParameters;
         value.function = functionObj.functionName.name;
     });
 
@@ -111,5 +113,5 @@ function setAllFunctions(){
 }
 
 function setFunction(worker){
-    return {"function": worker.function, info: worker.info, order: worker.order};
+    return {"function": worker.function, info: worker.info, order: worker.order, parameters: worker.parameters};
 }

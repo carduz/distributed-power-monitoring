@@ -56,10 +56,10 @@ io.on('connection', (client)=> {
         if (!functionPointer)
             return;
         try {
-            functionPointer.handler(workerData.id, data);
+            functionPointer.handler(workerData.id, data, dataReceived.parameters);
         }catch(e)
         {
-            console.error(e);
+            console.error(e.stack);
         }
     });
 });

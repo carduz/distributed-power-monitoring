@@ -15,6 +15,7 @@ class functionClass{
     handler(worker, data, parameters){
         return this._handler(worker, data, parameters);
     }
+    //TODO router
 }
 
 
@@ -32,5 +33,12 @@ module.exports = {
     }, (worker, data, parameters)=>{
         "use strict";
         console.log(worker, data, parameters);
+    }),
+    map: new functionClass(null, (worker, data, parameters)=>{
+        "use strict";
+        let original = data;
+        let mapper = new Function(parameters[0]);
+        let mapped = mapper(original);
+        console.log('Mapper', original, mapped);
     })
 };
