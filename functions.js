@@ -4,7 +4,7 @@
 "use strict";
 function standardRouter(worker, functions, index){
     let i = 0;
-    if(index>=(functions.length-1))
+    if(index>=(functions.length-1)) //is the last
         return function(){};
 
     let workers = functions[index+1].workers;
@@ -17,7 +17,7 @@ function standardRouter(worker, functions, index){
 class functionClass{
     constructor(setup, handler, router) {
         this._setup = setup || function(){};
-        this._handler = handler || function(){return function(){}};
+        this._handler = handler || function(){return function(data){return data;}};
         this._router = router || standardRouter;
     }
 
@@ -40,6 +40,7 @@ module.exports = {
         "use strict";
         return (data)=> {
             console.log('Printer', data);
+            return data;
         }
     }),
     shuffle: new functionClass((functions, index, parameters)=>{
@@ -51,7 +52,24 @@ module.exports = {
     }, (worker, data, parameters)=>{
         "use strict";
         return (data)=> {
-            console.log('Shuffle', data, parameters);
+            console.log('Shuffle', data);
+            return data;
+        }
+    }, (worker, functions, index)=>{
+        if(index>=(functions.length-1)) //is the last
+            return function(){};
+
+        let workers = functions[index+1].workers;
+        let num = workers.length;
+        //TODO
+        /*
+        * Assign keys in setup
+        * Can a key be assigned to more than one reducer?
+        * If yes do i%num system for each key
+         * nextData can have more than one key, so Object.keys must be used
+         */
+        return (nextData)=> {
+            return workers[i++ % num];
         }
     }),
     map: new functionClass(null, (worker, parameters)=>{

@@ -87,6 +87,7 @@ io.on('connection', (client)=> {
             if(routerPointer){
                 let next = routerPointer(nextData);
                 //TODO wait if next worker is not present, maybe a queue is a solution, check also if it exists
+                //TODO with a lot of workers soemtimes workers[next] = undefined
                 if(next)
                     workers[next].emit('job', nextData);
             }
