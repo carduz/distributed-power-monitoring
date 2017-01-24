@@ -12,12 +12,12 @@ if(process.argv.length != 4){
 let csv = csvStream(process.argv[3]);
 csv.header.then(keys=> {
     //console.log('keys', keys);
-    let rootKeys = Object.keys(keys);
+    let rootKeys = Object.keys(keys).map(value=>value.split(' ')[1]);
     clientLib(process.argv[2], [
         new functionClass('map', [mapper+";return mapper(arguments[0]);"]),
-        new functionClass('print'),
-        new functionClass('map', [mapper2+";return mapper2(arguments[0]);"]),
-        //new functionClass('shuffle', [], [rootKeys]),
+        //new functionClass('print'),
+        //new functionClass('map', [mapper2+";return mapper2(arguments[0]);"]),
+        new functionClass('shuffle', [], [rootKeys]),
         new functionClass('print'),
     ], csv.onData);
 });
@@ -25,13 +25,15 @@ csv.header.then(keys=> {
 function mapper(value){
     "use strict";
     let ret = {};
-    ret[value[2]] = value;
+    ret.key = value[2];
+    ret.value = value;
     return ret;
 }
 function mapper2(value){
     "use strict";
     let ret = {};
-    ret['A'] = 'test';
+    ret.key = 'A';
+    ret.value = 'test';
     return ret;
 }
 

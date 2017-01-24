@@ -65,14 +65,14 @@ socket.on('function', (data)=>{
     dataReceived = data;
     let functionObj = functions[data.function];
     try {
-        //this things are here since the connections are more than one (connections with other workers)
+        //these things are here since the connections are more than one (connections with other workers)
         functionPointer = functionObj.handler(workerData.id, dataReceived.parameters);
         routerPointer = functionObj.router(workerData.id, dataReceived.functions, dataReceived.order);
     }catch(e)
     {
         console.error(e.stack);
     }
-    console.log('function set');
+    console.log('function set', data.function);
     socket.emit('function set');
 });
 

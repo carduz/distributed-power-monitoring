@@ -110,7 +110,7 @@ function emitAllWorkers(channel, msg){
 function assignFunctions(functionsNames){
     let functionsWithWorkers = [];
     if(Object.keys(workers).length < functionsNames.length)
-        throw new Error('Insufficient workers');
+        throw new Error('Insufficient workers');//TODO emit to client, don't kill everything
 
     functionsWithWorkers = functionsNames.map(value=>{return {functionName: value, workers: []};});
     //assign workers, if the number of workers per function is not the same priority is given to the firsts functions
@@ -145,7 +145,9 @@ function setFunction(functions){
     functions = functions || [];
     functions = functions.map(value=>{
         let ret = value;
-        ret.workers = value.workers.map(worker=>worker.client.id);
+        ret.workers = value.workers.map(worker=>{
+            return {id: worker.client.id, info: worker.info}
+        });
         return ret;
     });
     return function(worker) {

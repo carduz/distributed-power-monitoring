@@ -10,7 +10,7 @@ function standardRouter(worker, functions, index){
     let workers = functions[index+1].workers;
     let num = workers.length;
     return (nextData)=>{
-        return workers[i++%num];
+        return workers[i++%num].id;
     };
 }
 
@@ -46,8 +46,15 @@ module.exports = {
     shuffle: new functionClass((functions, index, parameters)=>{
         if(index>=(functions.length-1))
             return ;
-        functions[index+1].workers.forEach(value=>{
-            value.info = parameters[0];
+        let workers = functions[index+1].workers;
+        let keys = parameters[0];
+        //TODO if there are too few keys?
+        //TODO if there are no keys? better solution that idle workers?
+        let keysPerWorker = Math.floor(keys.length/workers.length);
+        if(keysPerWorker<1)
+            keysPerWorker = 1;
+        workers.forEach(value=>{
+            value.info.keys = keys.splice(0, Math.min(keysPerWorker, keys.length));
         });
     }, (worker, data, parameters)=>{
         "use strict";
@@ -60,16 +67,19 @@ module.exports = {
             return function(){};
 
         let workers = functions[index+1].workers;
-        let num = workers.length;
-        //TODO
-        /*
-        * Assign keys in setup
-        * Can a key be assigned to more than one reducer?
-        * If yes do i%num system for each key
-         * nextData can have more than one key, so Object.keys must be used
-         */
+        let workersByKey = {};
+
+        workers.forEach(worker=>{
+            worker.info.keys.forEach(key=>{
+               workersByKey[key] = worker;
+           });
+        });
         return (nextData)=> {
-            return workers[i++ % num];
+            //TODO return errors to client
+            if(nextData.key == undefined) throw new Error("key not found in data");
+            let tmp = workersByKey[nextData.key];
+            if(tmp == undefined) throw new Error("Worker for key '"+nextData.key+"' not found");
+            return tmp.id;
         }
     }),
     map: new functionClass(null, (worker, parameters)=>{
