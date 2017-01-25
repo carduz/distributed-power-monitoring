@@ -64,7 +64,7 @@ function reducer(key, value){
         percentage = Math.round(percentage*100);
     }
     console.log(key+': percentage of plugs with mean higher than '+mean+' equal to: '+percentage+'%');
-    return percentage;
+    return key+'='+percentage;
 }
 
 function uniqueKey(value, require){
