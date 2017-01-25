@@ -2,42 +2,48 @@
  * Created by claudio on 30/12/16.
  */
 "use strict";
-module.exports = function (address, functions, dataFuntion) {
-    let utils = require('../commons/utils');
-    let client = require('socket.io-client');
+let utils = require('../commons/utils');
+let client = require('socket.io-client');
+module.exports = class{
+    constructor(address, dataFunction) {
+        this.socket = client(address);
+        this.dataFunction = dataFunction;
 
-    let socket = client(address);
+        this.socket.on('event', (data)=>{});
+        this.socket.on('disconnect', ()=>{
+            console.log('connection closed by the server');
+            this.socket.close();
+        });
 
-    socket.on('event', (data)=>{});
-    socket.on('disconnect', ()=>{
-        console.log('connection closed by the server');
-        socket.close();
-    });
+        this.socket.on('connect', ()=>{
+            console.log('connected');
+            this.socket.emit('client');
+        });
 
-    socket.on('connect', ()=>{
-        console.log('connected');
-        socket.emit('client', functions);
-    });
+        this.workers = [];
+        this.socket.on('workers', (data)=>{
+            console.log('workers received');
+            this.connectToWorkers(data).then(data=>this.sendWorks(data));//this way to stay in class contex
+        });
+    }
 
-    let workers = [];
-    socket.on('workers', (data)=>{
-        console.log('workers received');
-        connectToWorkers(data).then(sendWorks);
-    });
+    setFunctions(functions){
+        this.socket.emit('set-functions', functions);
+    }
 
-    function connectToWorkers(data){
+    connectToWorkers(data){
         "use strict";
         return Promise.all(data.map((value)=>{
-            let res = workers.filter((value2)=>{
-               if(value2.address == value)
-                   return true;
+            let res = this.workers.filter((value2)=>{
+                if(value2.address == value)
+                    return true;
             });
             if(res.length)
                 return Promise.resolve(res[0]);
             //TODO manage disconnection, retry reconnect?
             return utils.connectPromise(value);
         })).then((data)=>{
-            workers=data;
+            this.workers=data;
             console.log('connected to workers');
         });
 
@@ -49,13 +55,13 @@ module.exports = function (address, functions, dataFuntion) {
     //TODO sync with init, don't recall on change workers but adapat itself
     //TODO how to get the answer? maybe the master should have a list of tasks
     //TODO close all at the end
-    function sendWorks(){
+    sendWorks(){
         "use strict";
         let i = 0;
-        let num = workers.length;
+        let num = this.workers.length;
         //TODO header in stderr
-        dataFuntion((record)=>{
-            workers[i++%num].connection.emit('job', record);
+        this.dataFunction((record)=>{
+            this.workers[i++%num].connection.emit('job', record);
         });
     }
 };

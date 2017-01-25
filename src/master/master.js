@@ -61,6 +61,10 @@ io.on('connection', (client)=>{
     });
 
     client.on('client',(functions)=>{
+        //TODO send old functions?
+    });
+
+    client.on('set-functions',(functions)=>{
         //this is a sort of Promise.all
         allFunctionsSet(()=>{
             client.emit('workers', Object.keys(workers).filter(key=>+workers[key].order==0).map(key=>workers[key].getAddress())); //bad way

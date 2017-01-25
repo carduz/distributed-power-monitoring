@@ -14,12 +14,13 @@ csv.header.then(keys=> {
     //TODO stop stream if the connection is closed
     //console.log('keys', keys);
     let rootKeys = Object.keys(keys).map(value=>value.split(' ')[1]);
-    clientLib(process.argv[2], [
+    let client = new clientLib(process.argv[2], csv.onData);
+    client.setFunctions([
         new functionClass('map', [mapper+";return mapper(arguments[0]);"]),
         new functionClass('shuffle', [], [rootKeys]),
         new functionClass('reduce', [reducer+";return reducer(arguments[0], arguments[1]);", uniqueKey+";return uniqueKey(arguments[0], arguments[1]);"]),
         new functionClass('print'),
-    ], csv.onData);
+    ]);
 });
 
 //"use strict" needed, since they are executed anonymously
