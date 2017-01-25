@@ -2,6 +2,8 @@
  * Created by claudio on 30/12/16.
  */
 "use strict";
+let debounce = require('debounce');
+
 function standardRouter(worker, functions, index){
     let i = 0;
     if(index>=(functions.length-1)) //is the last
@@ -84,12 +86,44 @@ module.exports = {
     }),
     map: new functionClass(null, (worker, parameters)=>{
         "use strict";
-        let mapper = new Function(parameters[0]);
+        let mapper = new Function(parameters[0]); //TODO default
         return (data)=> {
             let original = data;
             let mapped = mapper(original);
             console.log('Mapper', original, mapped);
             return mapped;
+        }
+    }),
+    reduce: new functionClass(null, (worker, parameters)=>{
+        "use strict";
+        let reducer = new Function(parameters[0]); //TODO default
+        let uniqueKey = new Function(parameters[1]); //TODO default
+        let windowSize = parameters[2]||1000; //ms
+        let debounces = {};
+        let buffer = {};
+        let processed = [];
+        return (data)=> {
+            let key = uniqueKey(data, require);
+            if(processed.indexOf(key)>=0)
+                return ;
+            buffer[key] = buffer[key] || [];
+            buffer[key].push(data);
+            debounces[key] = debounces[key] || debounce(()=>{
+                try {
+                    processed.push(key);
+                    let original = buffer[key];
+                    let reduced = reducer(key, original);
+                    console.log('Reducer', reduced);
+                    delete buffer[key];
+                    delete debounces[key];
+                    //TODO return to something, if next node?
+                }catch(e)
+                {
+                    console.error(e.stack);
+                }
+                }, windowSize);
+            debounces[key]();
+            return '';
         }
     })
 };

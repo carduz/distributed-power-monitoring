@@ -15,13 +15,13 @@ csv.header.then(keys=> {
     let rootKeys = Object.keys(keys).map(value=>value.split(' ')[1]);
     clientLib(process.argv[2], [
         new functionClass('map', [mapper+";return mapper(arguments[0]);"]),
-        //new functionClass('print'),
-        //new functionClass('map', [mapper2+";return mapper2(arguments[0]);"]),
         new functionClass('shuffle', [], [rootKeys]),
-        new functionClass('print'),
+        new functionClass('reduce', [reducer+";return reducer(arguments[0], arguments[1]);", uniqueKey+";return uniqueKey(arguments[0], arguments[1]);"]),
+        //new functionClass('print'),
     ], csv.onData);
 });
 
+//"use strict" needed, since they are executed anonymously
 function mapper(value){
     "use strict";
     let ret = {};
@@ -29,12 +29,48 @@ function mapper(value){
     ret.value = value;
     return ret;
 }
-function mapper2(value){
+function reducer(key, value){
     "use strict";
-    let ret = {};
-    ret.key = 'A';
-    ret.value = 'test';
-    return ret;
+    let means = {};
+    let meansValues = {};
+    let mean = 0;
+    let percentage = 0;
+    value.forEach(value=>{
+        value = value['value'];
+        let key = value[3]+'-'+value[4];
+        means[key] = means[key] || {total:0, n:0};
+        means[key].total += parseInt(value[5]);
+        means[key].n++;
+    });
+
+    let keys = Object.keys(means);
+    keys.forEach(key=> {
+        //console.log(means[key]);
+        let tmp = means[key].total / means[key].n;
+        meansValues[key] = tmp;
+        mean += tmp;
+    });
+    mean /= keys.length;
+
+    {
+        let greater = 0;
+        keys.forEach(key=> {
+            //console.log(meansValues[key], mean, greater);
+            if(meansValues[key]>mean)
+                greater++;
+        });
+        percentage = greater/keys.length;
+        percentage = Math.round(percentage*100);
+    }
+    console.log('percentage of plugs with mean higher than '+mean+' equal to: '+percentage+'%');
+    return percentage;
+}
+
+function uniqueKey(value, require){
+    "use strict";
+    //TODO no vlaid key
+    let moment = require('moment');
+    return value['key']+'-'+moment(value['value'][1]*1000).format('DD-MM-YYYY_hh');
 }
 
 

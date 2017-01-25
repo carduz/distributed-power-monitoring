@@ -18,7 +18,7 @@ function getStream(cb, name) {
 
     ws.write = function (buf) {
         ws.bytes += buf.length;
-        cb(buf.toString());
+        cb(buf);
     };
 
     ws.end = function (buf) {
@@ -125,7 +125,7 @@ module.exports =
             let generator = spawn('java', ['-jar', 'data-generator.jar', seconds]);
             let data = '';
             let solved = false;
-            generator.stderr.pipe(getStream(chunk=>data+=chunk, 'header'));
+            generator.stderr.pipe(getStream(chunk=>data+=chunk.toString(), 'header'));
             generator.stdout.pipe(csvParser).pipe(locker(()=>{
                 if(!solved){
                     solved = true;
