@@ -5,8 +5,8 @@
 let server = require('http').createServer();
 let io = require('socket.io')(server);
 let actived = false;
-let functions = require('./functions');
-let utils = require('./utils');
+let functions = require('../commons/functions');
+let utils = require('../commons/utils');
 
 if(process.argv.length != 3){
     console.error('Usage node worker.js {master address}');

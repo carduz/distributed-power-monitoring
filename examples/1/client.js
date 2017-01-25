@@ -2,9 +2,9 @@
  * Created by claudio on 08/01/17.
  */
 "use strict";
-let csvStream = require('./csvStream');
-let clientLib = require('./clientLib');
-let functionClass = require('./function');
+let csvStream = require('../commons/stream-generator/csvStream');
+let clientLib = require('../../src/client/clientLib');
+let functionClass = require('../../src/client/function');
 if(process.argv.length != 4){
     console.error('Usage node client.js {master address} {seconds}');
     process.exit();

@@ -3,7 +3,7 @@
  */
 "use strict";
 module.exports = function (address, functions, dataFuntion) {
-    let utils = require('./utils');
+    let utils = require('../commons/utils');
     let client = require('socket.io-client');
 
     let socket = client(address);

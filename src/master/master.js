@@ -4,7 +4,7 @@
 "use strict";
 let server = require('http').createServer();
 let io = require('socket.io')(server);
-let functions = require('./functions');
+let functions = require('../commons/functions');
 const BASE_PORT = 3000;
 
 let workers = {};

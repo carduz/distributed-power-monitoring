@@ -122,7 +122,7 @@ module.exports =
         });
         return {header: new Promise((resolve, reject)=>{
             "use strict";
-            let generator = spawn('java', ['-jar', 'data-generator.jar', seconds]);
+            let generator = spawn('java', ['-jar', __dirname+'/data-generator.jar', seconds]);
             let data = '';
             let solved = false;
             generator.stderr.pipe(getStream(chunk=>data+=chunk.toString(), 'header'));

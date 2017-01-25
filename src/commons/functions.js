@@ -3,7 +3,7 @@
  */
 "use strict";
 let debounce = require('debounce');
-let config = require('./config');
+let config = require('../../config');
 
 function standardRouter(worker, functions, index){
     let i = 0;
