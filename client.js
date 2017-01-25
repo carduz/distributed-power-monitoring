@@ -70,7 +70,7 @@ function uniqueKey(value, require){
     "use strict";
     //TODO no vlaid key
     let moment = require('moment');
-    return value['key']+'-'+moment(value['value'][1]*1000).format('DD-MM-YYYY_hh');
+    return value['key']+'-'+moment(value['value'][1]*1000).format('DD-MM-YYYY_HH');
 }
 
 
