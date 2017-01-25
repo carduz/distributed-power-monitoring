@@ -126,7 +126,8 @@ module.exports =
             let data = '';
             let solved = false;
             generator.stderr.pipe(getStream(chunk=>data+=chunk.toString(), 'header'));
-            generator.stdout.pipe(csvParser).pipe(locker(()=>{
+            generator.stdout.pipe(csvParser)
+                .pipe(locker(()=>{//lock data until the header is correctly set
                 if(!solved){
                     solved = true;
                     resolve(parseKeys(data));
