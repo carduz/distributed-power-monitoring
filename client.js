@@ -11,13 +11,14 @@ if(process.argv.length != 4){
 }
 let csv = csvStream(process.argv[3]);
 csv.header.then(keys=> {
+    //TODO stop stream if the connection is closed
     //console.log('keys', keys);
     let rootKeys = Object.keys(keys).map(value=>value.split(' ')[1]);
     clientLib(process.argv[2], [
         new functionClass('map', [mapper+";return mapper(arguments[0]);"]),
         new functionClass('shuffle', [], [rootKeys]),
         new functionClass('reduce', [reducer+";return reducer(arguments[0], arguments[1]);", uniqueKey+";return uniqueKey(arguments[0], arguments[1]);"]),
-        //new functionClass('print'),
+        new functionClass('print'),
     ], csv.onData);
 });
 

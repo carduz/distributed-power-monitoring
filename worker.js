@@ -66,14 +66,27 @@ socket.on('function', (data)=>{
     let functionObj = functions[data.function];
     try {
         //these things are here since the connections are more than one (connections with other workers)
-        functionPointer = functionObj.handler(workerData.id, dataReceived.parameters);
         routerPointer = functionObj.router(workerData.id, dataReceived.functions, dataReceived.order);
+        functionPointer = functionObj.handler(nextData=>{
+            try {
+                if (routerPointer) {
+                    let next = routerPointer(nextData);
+                    //TODO wait if next worker is not present, maybe a queue is a solution, check also if it exists
+                    //TODO with a lot of workers soemtimes workers[next] = undefined
+                    if (next)
+                        workers[next].emit('job', nextData);
+                }
+            }catch(e)
+            {
+                console.error(e.stack);
+            }
+        },workerData.id, dataReceived.parameters);
     }catch(e)
     {
         console.error(e.stack);
     }
     console.log('function set', data.function);
-    socket.emit('function set');
+    socket.emit('function set');//ACK
 });
 
 io.on('connection', (client)=> {
@@ -83,15 +96,7 @@ io.on('connection', (client)=> {
         if (!functionPointer)
             return;
         try {
-            let nextData = functionPointer(data);
-            if(routerPointer){
-                let next = routerPointer(nextData);
-                //TODO wait if next worker is not present, maybe a queue is a solution, check also if it exists
-                //TODO with a lot of workers soemtimes workers[next] = undefined
-                if(next)
-                    workers[next].emit('job', nextData);
-            }
-
+            functionPointer(data);
         }catch(e)
         {
             console.error(e.stack);

@@ -20,7 +20,7 @@ function standardRouter(worker, functions, index){
 class functionClass{
     constructor(setup, handler, router) {
         this._setup = setup || function(){};
-        this._handler = handler || function(){return function(data){return data;}};
+        this._handler = handler || function(){return function(done, data){done(data);}};
         this._router = router || standardRouter;
     }
 
@@ -28,8 +28,8 @@ class functionClass{
         return this._setup(functions, index, parameters);
     }
 
-    handler(worker, parameters){
-        return this._handler(worker, parameters);
+    handler(done, worker, parameters){
+        return this._handler(done, worker, parameters);
     }
 
     router(worker, functions, index){
@@ -39,11 +39,11 @@ class functionClass{
 
 
 module.exports = {
-    print: new functionClass(null, (worker, data)=>{
+    print: new functionClass(null, (done, worker, data)=>{
         "use strict";
         return (data)=> {
             console.log('Printer', data);
-            return data;
+            done(data);
         }
     }),
     shuffle: new functionClass((functions, index, parameters)=>{
@@ -59,12 +59,12 @@ module.exports = {
         workers.forEach(value=>{
             value.info.keys = keys.splice(0, Math.min(keysPerWorker, keys.length));
         });
-    }, (worker, data, parameters)=>{
+    }, (done, worker, data, parameters)=>{
         "use strict";
         return (data)=> {
             if(!config.silent)
                 console.log('Shuffle', data);
-            return data;
+            done(data);
         }
     }, (worker, functions, index)=>{
         if(index>=(functions.length-1)) //is the last
@@ -86,7 +86,7 @@ module.exports = {
             return tmp.id;
         }
     }),
-    map: new functionClass(null, (worker, parameters)=>{
+    map: new functionClass(null, (done, worker, parameters)=>{
         "use strict";
         let mapper = new Function(parameters[0]); //TODO default
         return (data)=> {
@@ -94,10 +94,10 @@ module.exports = {
             let mapped = mapper(original);
             if(!config.silent)
                 console.log('Mapper', original, mapped);
-            return mapped;
+            done(mapped);
         }
     }),
-    reduce: new functionClass(null, (worker, parameters)=>{
+    reduce: new functionClass(null, (done, worker, parameters)=>{
         "use strict";
         let reducer = new Function(parameters[0]); //TODO default
         let uniqueKey = new Function(parameters[1]); //TODO default
@@ -118,6 +118,7 @@ module.exports = {
                     let reduced = reducer(key, original);
                     if(!config.silent)
                         console.log('Reducer', reduced);
+                    done(reduced);
                     delete buffer[key];
                     delete debounces[key];
                     //TODO return to something, if next node?
@@ -127,7 +128,6 @@ module.exports = {
                 }
                 }, windowSize);
             debounces[key]();
-            return '';
         }
     })
 };
