@@ -62,7 +62,7 @@ function reducer(key, value){
         percentage = greater/keys.length;
         percentage = Math.round(percentage*100);
     }
-    console.log('percentage of plugs with mean higher than '+mean+' equal to: '+percentage+'%');
+    console.log(key+': percentage of plugs with mean higher than '+mean+' equal to: '+percentage+'%');
     return percentage;
 }
 
