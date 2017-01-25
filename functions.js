@@ -3,6 +3,7 @@
  */
 "use strict";
 let debounce = require('debounce');
+let config = require('./config');
 
 function standardRouter(worker, functions, index){
     let i = 0;
@@ -61,7 +62,8 @@ module.exports = {
     }, (worker, data, parameters)=>{
         "use strict";
         return (data)=> {
-            console.log('Shuffle', data);
+            if(!config.silent)
+                console.log('Shuffle', data);
             return data;
         }
     }, (worker, functions, index)=>{
@@ -90,7 +92,8 @@ module.exports = {
         return (data)=> {
             let original = data;
             let mapped = mapper(original);
-            console.log('Mapper', original, mapped);
+            if(!config.silent)
+                console.log('Mapper', original, mapped);
             return mapped;
         }
     }),
@@ -113,7 +116,8 @@ module.exports = {
                     processed.push(key);
                     let original = buffer[key];
                     let reduced = reducer(key, original);
-                    console.log('Reducer', reduced);
+                    if(!config.silent)
+                        console.log('Reducer', reduced);
                     delete buffer[key];
                     delete debounces[key];
                     //TODO return to something, if next node?
