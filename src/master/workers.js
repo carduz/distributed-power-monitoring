@@ -3,23 +3,7 @@
  */
 "use strict";
 let setFunctionsClass = require('./setFunctions');
-
-class Worker{
-    constructor(client, ip, port) {
-        this.client = client;
-        this.ip = ip;
-        this.port = port;
-        this.order = 0;
-        this.function = 'print';
-        this.info = {};
-        this.parameters = [];
-        this.functionSetCB = function(){};
-    }
-
-    getAddress(){
-        return 'http://'+this.ip+':'+this.port;
-    }
-}
+let WorkerClass = require('./worker');
 
 module.exports = (basePort, ioWorkers, workers)=> {
     //TODO do this thing based on real address, a sort of map realAddress -> portCounter
@@ -34,28 +18,27 @@ module.exports = (basePort, ioWorkers, workers)=> {
         client.on('disconnect', ()=> {
             console.log('Worker disconnected', id);
             //client.close(); //TODO why not work? do it for normal client?
-            delete workers[id];
+            workers.remove(id);
             ioWorkers.emit('worker', 'delete', id);
         });
 
         client.on('function set', ()=> {
-            workers[id].functionSetCB(); //this way to call the new version of functionSetCB
+            workers.get(id).functionSetCB(); //this way to call the new version of functionSetCB
         });
 
         client.on('worker', (ip)=> {
             port = portCounter++;
-            let tmpWorker = new Worker(client, ip, port);
+            let tmpWorker = new WorkerClass(client, ip, port);
 
             //send already stored
-            Object.keys(workers).forEach(key=> {
-                let worker = workers[key];
+            workers.forEach((worker, key)=> {
                 client.emit('worker', 'add', key, worker.getAddress());
             });
 
-            setFunctions.emitAllWorkers('worker', 'add', id, tmpWorker.getAddress());
-            workers[id] = tmpWorker;
+            ioWorkers.emit('worker', 'add', id, tmpWorker.getAddress());
+            workers.add(tmpWorker);
             client.emit('port', {port: port, id: id});
-            client.emit('function', setFunctions.setFunction()(workers[id]));
+            client.emit('function', setFunctions.setFunction()(workers.get(id)));
         });
     });
 };

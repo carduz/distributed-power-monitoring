@@ -17,8 +17,7 @@ module.exports = class {
     emitAllWorkers(channel, msg){
         "use strict";
         msg = msg || '';
-        Object.keys(this.workers).forEach((key)=>{
-            let value = this.workers[key];
+        this.workers.forEach((value)=>{
             let parameters = [];
             parameters.push(channel);
             let data = '';
@@ -37,13 +36,12 @@ module.exports = class {
 
     assignFunctions(functionsNames){
         let functionsWithWorkers = [];
-        if(Object.keys(this.workers).length < functionsNames.length)
+        if(this.workers.length < functionsNames.length)
             throw new Error('Insufficient workers');//TODO emit to client, don't kill everything
 
         functionsWithWorkers = functionsNames.map(value=>{return {functionName: value, workers: []};});
         //assign workers, if the number of workers per function is not the same priority is given to the firsts functions
-        Object.keys(this.workers).forEach((key, i)=>{
-            let value = this.workers[key];
+        this.workers.forEach((value, key, i)=>{
             let order = i%functionsWithWorkers.length;
             let functionObj = functionsWithWorkers[order];
             functionObj.workers.push(value);
@@ -80,9 +78,9 @@ module.exports = class {
     }
 
     allFunctionsSet(cb) {
-        let toConsume = Object.keys(this.workers);
-        Object.keys(this.workers).forEach((key)=>{
-            this.workers[key].functionSetCB = ()=>{
+        let toConsume = this.workers.keys;
+        this.workers.forEach((worker, key)=>{
+            worker.functionSetCB = ()=>{
                 let position = toConsume.indexOf(key);
                 if(position>=0)
                     toConsume.splice(position,1);

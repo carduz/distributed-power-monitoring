@@ -16,15 +16,14 @@ module.exports = (ioClients, workers)=>{
             //client.close(); //TODO why not work? do it for normal client?
         });
 
-        client.on('client',(functions)=>{
+        client.on('client',()=>{
             client.emit('workers', {type:'default', data: clientWorkers});
         });
 
         client.on('set-functions',(functions)=>{
-            //this is a sort of Promise.all
-            //TODO we don't have a confirmation from workers
+            //this is a sort of Promise.all, the confirmation is given byu the worker via "function set"
             setFunctions.allFunctionsSet(()=>{
-                clientWorkers = Object.keys(setFunctions.workers).filter(key=>setFunctions.workers[key].order==0).map(key=>setFunctions.workers[key].getAddress());  //TODO bad way
+                clientWorkers = workers.addressesAtLevel(0);
                 ioClients.emit('workers', {type: 'set', data:clientWorkers});
             });
             setFunctions.assignFunctions(functions);

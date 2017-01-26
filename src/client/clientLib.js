@@ -57,6 +57,7 @@ module.exports = class{
     //wait to send new data
     connectToWorkers(data){
         "use strict";
+        data = data || [];
         return Promise.all(data.map((value)=>{
             let res = this.workers.filter((value2)=>{
                 if(value2.address == value)
