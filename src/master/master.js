@@ -9,8 +9,9 @@ const BASE_PORT = 3000;
 
 let workers = {};
 class Worker{
-    constructor(client, port) {
+    constructor(client, ip, port) {
         this.client = client;
+        this.ip = ip;
         this.port = port;
         this.order = 0;
         this.function = 'print';
@@ -20,7 +21,7 @@ class Worker{
     }
 
     getAddress(){
-        return 'http://localhost:'+this.port;
+        return 'http://'+this.ip+':'+this.port;
     }
 }
 
@@ -41,10 +42,10 @@ io.on('connection', (client)=>{
             emitAllWorkers('worker', 'delete', id);
         }
     });
-    client.on('worker',()=>{
+    client.on('worker',(ip)=>{
         worker = true;
         port = portCounter++;
-        let tmpWorker = new Worker(client, port);
+        let tmpWorker = new Worker(client, ip, port);
 
         //send already stored
         Object.keys(workers).forEach(key=>{

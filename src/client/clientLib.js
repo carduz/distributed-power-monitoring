@@ -9,6 +9,7 @@ module.exports = class{
         connectToWorkers = connectToWorkers==undefined?true:connectToWorkers;
         this.socket = client(address);
         this.workers = [];
+        this.worksStatus = 0;
         this._setWorkersPending = new utils.storePromise();
         this.workersConnectedPromise = null;
         this.functionsSet = false;
@@ -53,6 +54,7 @@ module.exports = class{
     //TODO if this is call again before it is resolved the connections are taken two times (since the nex execution doens't know that there is an attempt. maybe there should be a register of attempts
     //TODO if connections fail?
     //TODO catch?
+    //wait to send new data
     connectToWorkers(data){
         "use strict";
         return Promise.all(data.map((value)=>{
@@ -76,12 +78,21 @@ module.exports = class{
     //TODO sync with init, don't recall on change workers but adapat itself
     //TODO how to get the answer? maybe the master should have a list of tasks
     //TODO close all at the end
+    /**
+     *
+     * @param data
+     * @returns {boolean} send status
+     */
     sendWork(data){
         "use strict";
         //TODO error fi there are no workers available?
-        this.worksStatus = this.worksStatus || 0;
-        let i = this.worksStatus;
         let num = this.workers.length;
+        if(num == 0){
+            console.error('No workers available');
+            return false;
+        }
+        let i = this.worksStatus;
         this.workers[i++%num].connection.emit('job', data);
+        return true;
     }
 };

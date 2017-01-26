@@ -8,18 +8,19 @@ let actived = false;
 let functions = require('../commons/functions');
 let utils = require('../commons/utils');
 
-if(process.argv.length != 3){
-    console.error('Usage node worker.js {master address}');
+if(process.argv.length != 4){
+    console.error('Usage node worker.js {master address} {local ip}');
     process.exit();
 }
 
 const ioClient = require('socket.io-client');
 var socket = ioClient(process.argv[2]);
+let address = process.argv[3];
 let workers = {};
 
 socket.on('connect', ()=>{
     console.log('connected');
-    socket.emit('worker');
+    socket.emit('worker', address);//local address
 });
 socket.on('event', (data)=>{});
 socket.on('disconnect', ()=>{
