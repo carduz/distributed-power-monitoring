@@ -4,12 +4,15 @@
 "use strict";
 let functions = require('../commons/functions');
 
-module.exports = {
-    workers: {},
+module.exports = class {
+
+    constructor(workers) {
+        this.workers = workers;
+    }
 
     setAllFunctions(functions){
         this.emitAllWorkers('function', this.setFunction(functions));
-    },
+    }
 
     emitAllWorkers(channel, msg){
         "use strict";
@@ -30,7 +33,7 @@ module.exports = {
             parameters = parameters.concat(Array.prototype.slice.call(arguments, 2));
             value.client.emit.apply(value.client, parameters);
         });
-    },
+    }
 
     assignFunctions(functionsNames){
         let functionsWithWorkers = [];
@@ -60,7 +63,7 @@ module.exports = {
         });
 
         this.setAllFunctions(functionsWithWorkers);
-    },
+    }
 
     setFunction(functions){
         functions = functions || [];
@@ -74,7 +77,7 @@ module.exports = {
         return function(worker) {
             return {"function": worker.function, info: worker.info, order: worker.order, parameters: worker.parameters, functions: functions};
         }
-    },
+    }
 
     allFunctionsSet(cb) {
         let toConsume = Object.keys(this.workers);

@@ -11,8 +11,11 @@ const BASE_PORT = 3000;
 //namespaces
 let ioWorkers = io.of('/workers');
 let ioClients = io.of('/clients');
-workers(BASE_PORT,ioWorkers);
-clients(ioClients);
+
+//init
+let workersObj = {};
+workers(BASE_PORT,ioWorkers, workersObj);
+clients(ioClients, workersObj);
 
 server.listen(BASE_PORT);
 console.log('Master on port', BASE_PORT);

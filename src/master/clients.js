@@ -2,10 +2,11 @@
  * Created by claudio on 26/01/17.
  */
 "use strict";
-let setFunctions = require('./setFunctions');
+let setFunctionsClass = require('./setFunctions');
 
-module.exports = (ioClients)=>{
+module.exports = (ioClients, workers)=>{
     let clientWorkers = [];
+    let setFunctions = new setFunctionsClass(workers);
     ioClients.on('connection', (client)=>{
         let id = client.id;
         console.log('Client connected', id);
