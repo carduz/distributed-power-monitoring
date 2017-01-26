@@ -41,7 +41,7 @@ Promise.all([
     csv.header,
     pipeConfig(process.argv[2], onConfigData),
     createClients(),
-]).then(data=> {
+]).then(data=> { //set functions
     let keys = data[0];
     let configStream = data[1];
     let clients = data[2];
@@ -54,7 +54,7 @@ Promise.all([
         configDone.promise, //we are sure that functions have been set
         clients
     ]);
-}).then(data=>{
+}).then(data=>{ //send data
     let clients = data[1];
     let i = 0;
     //set the callback to send data

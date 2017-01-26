@@ -11,15 +11,14 @@ if(process.argv.length != 4){
 
 
 console.log('client');
+
+//TODO promise connection, maybe to master is enough
+let client = new clientLib(process.argv[2]);
+
 //needed for inter-process communication
 pipeServer(process.argv[3], (data)=>{
     console.log(data);
-    //connect to client
-    /*let client = new clientLib(process.argv[2]);
-
-     //set functions
-     client.setWorkersPending //workers received (so property of next promise set)
-     .then((type)=>client.workersConnectedPromise) //connected to all definitive workers
-     .then(()=>csv.onData((data)=>{client.sendWork(data)})); //set the callback to send data
-     });*/
+    client.sendWork(data);
+}).then(stream=>{
+    stream.onEnd(client.close);
 });

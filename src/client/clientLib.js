@@ -78,6 +78,7 @@ module.exports = class{
     //TODO close all at the end
     sendWork(data){
         "use strict";
+        //TODO error fi there are no workers available?
         this.worksStatus = this.worksStatus || 0;
         let i = this.worksStatus;
         let num = this.workers.length;

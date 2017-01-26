@@ -62,7 +62,7 @@ io.on('connection', (client)=>{
     });
 
     client.on('client',(functions)=>{
-        client.emit('workers', {type:'default', data: clientWorkers});
+        io.emit('workers', {type:'default', data: clientWorkers}); //send to all, also workers
     });
 
     client.on('set-functions',(functions)=>{
@@ -70,7 +70,7 @@ io.on('connection', (client)=>{
         //TODO we don't have a confirmation from workers
         allFunctionsSet(()=>{
             clientWorkers = Object.keys(workers).filter(key=>+workers[key].order==0).map(key=>workers[key].getAddress());  //TODO bad way
-            client.emit('workers', {type: 'set', data:clientWorkers});
+            io.emit('workers', {type: 'set', data:clientWorkers}); //send to all, also workers
         });
         assignFunctions(functions);
     });
