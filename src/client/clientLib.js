@@ -7,7 +7,7 @@ let client = require('socket.io-client');
 module.exports = class{
     constructor(address, connectToWorkers) {
         connectToWorkers = connectToWorkers==undefined?true:connectToWorkers;
-        this.socket = client(address);
+        this.socket = client(address+'/clients');
         this.workers = [];
         this.worksStatus = 0;
         this._setWorkersPending = new utils.storePromise();

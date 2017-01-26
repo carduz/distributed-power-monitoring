@@ -25,25 +25,28 @@ class Worker{
     }
 }
 
+let ioWorkers = io.of('/workers');
+let ioClients = io.of('/clients');
 //TODO do this thing based on real address, a sort of map realAddress -> portCounter
 let portCounter = BASE_PORT+1;
 let clientWorkers = [];
-io.on('connection', (client)=>{
+ioWorkers.on('connection', (client)=>{
     let id = client.id;
-    let worker = false;
     let port = 0;
-    console.log('Client connected', id);
+    console.log('Worker connected', id);
     client.on('event', (data)=>{});
     client.on('disconnect', ()=>{
-        console.log('Client disconnected', id);
+        console.log('Worker disconnected', id);
         //client.close(); //TODO why not work? do it for normal client?
-        if(worker) {
-            delete workers[id];
-            emitAllWorkers('worker', 'delete', id);
-        }
+        delete workers[id];
+        emitAllWorkers('worker', 'delete', id);
     });
+
+    client.on('function set',()=> {
+        workers[id].functionSetCB(); //this way to call the new version of functionSetCB
+    });
+
     client.on('worker',(ip)=>{
-        worker = true;
         port = portCounter++;
         let tmpWorker = new Worker(client, ip, port);
 
@@ -58,8 +61,15 @@ io.on('connection', (client)=>{
         client.emit('port', {port:port, id: id});
         client.emit('function', setFunction()(workers[id]));
     });
-    client.on('function set',()=> {
-        workers[id].functionSetCB(); //this way to call the new version of functionSetCB
+});
+
+ioClients.on('connection', (client)=>{
+    let id = client.id;
+    console.log('Client connected', id);
+    client.on('event', (data)=>{});
+    client.on('disconnect', ()=>{
+        console.log('Client disconnected', id);
+        //client.close(); //TODO why not work? do it for normal client?
     });
 
     client.on('client',(functions)=>{
@@ -70,8 +80,9 @@ io.on('connection', (client)=>{
         //this is a sort of Promise.all
         //TODO we don't have a confirmation from workers
         allFunctionsSet(()=>{
+            console.log('test');
             clientWorkers = Object.keys(workers).filter(key=>+workers[key].order==0).map(key=>workers[key].getAddress());  //TODO bad way
-            io.emit('workers', {type: 'set', data:clientWorkers}); //send to all, also workers
+            ioClients.emit('workers', {type: 'set', data:clientWorkers});
         });
         assignFunctions(functions);
     });

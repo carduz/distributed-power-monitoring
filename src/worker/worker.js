@@ -14,7 +14,7 @@ if(process.argv.length != 4){
 }
 
 const ioClient = require('socket.io-client');
-var socket = ioClient(process.argv[2]);
+var socket = ioClient(process.argv[2]+'/workers');
 let address = process.argv[3];
 let workers = {};
 
