@@ -10,9 +10,7 @@ module.exports = (sock, cb)=> {
         var server = net.createServer((stream) => {
             let wrapper = new streamWrapper(stream);
             wrapper.onData(cb);
-            stream.on('end', () => {
-                server.close();
-            });
+            wrapper.onEnd(()=>server.close()); //the function is not passed to avoid context problems
             resolve(wrapper);
         });
         server.listen(sock);

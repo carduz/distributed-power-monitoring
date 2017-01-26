@@ -11,18 +11,21 @@ if(process.argv.length != 4){
 }
 
 console.log('config');
+
+//TODO close when init is closed
+//connect to client
+let client = new clientLib(process.argv[2], false);
+
 pipeServer(process.argv[3], (data, stream)=> {
     if(data.config != undefined)
         config(data).then(()=>stream.write('config_done'));
+}).then(stream=>{
+    stream.onEnd(client.close);
 });
 
 
 //get header
 function config(rootKeys){
-    //connect to client
-    let client = new clientLib(process.argv[2], false);
-
-    //TODO close when init is closed
 
     //set functions
     return client.setFunctions([

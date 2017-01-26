@@ -11,6 +11,7 @@ if(process.argv.length != 5){
     process.exit();
 }
 
+//TODO check if it is a number, since chars are recognized as 1
 let numClients = parseInt(process.argv[4]);
 if(numClients <= 0){
     console.error('clients must be >=1');

@@ -34,6 +34,11 @@ module.exports = class{
         });
     }
 
+    close(){
+        console.log('connection closed by the client');
+        this.socket.close();
+    }
+
     setFunctions(functions){
         this.functionsSet = true;
         this._setWorkersPending.fresh();

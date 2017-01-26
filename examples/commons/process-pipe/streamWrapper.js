@@ -4,9 +4,10 @@
 "use strict";
 
 module.exports = class {
-
     constructor(stream) {
         this._stream = stream;
+        this._onEnd = [];
+        this._stream.on('end', ()=>this._onEnd.forEach(onEnd => onEnd()));
     }
 
     get stream(){
@@ -29,6 +30,10 @@ module.exports = class {
         });
     }
 
+    onEnd(cb){
+        this._onEnd.push(cb);
+    }
+
     write(data){
         return this._stream.write(JSON.stringify(data)+'||');
     }
@@ -36,4 +41,4 @@ module.exports = class {
     end(){
         return this._stream.end();
     }
-}
+};
