@@ -62,7 +62,7 @@ io.on('connection', (client)=>{
     });
 
     client.on('client',(functions)=>{
-        io.emit('workers', {type:'default', data: clientWorkers}); //send to all, also workers
+        client.emit('workers', {type:'default', data: clientWorkers});
     });
 
     client.on('set-functions',(functions)=>{

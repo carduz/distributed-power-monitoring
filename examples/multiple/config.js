@@ -18,7 +18,7 @@ let client = new clientLib(process.argv[2], false);
 
 pipeServer(process.argv[3], (data, stream)=> {
     if(data.config != undefined)
-        exampleFunctions(client, data).then(()=>stream.write('config_done'));
+        exampleFunctions(client, data.config).then(()=>stream.write('config_done'));
 }).then(stream=>{
     stream.onEnd(client.close);
 });
