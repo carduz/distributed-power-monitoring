@@ -7,6 +7,7 @@ var through2 = require('through2');
 const spawn = require('child_process').spawn;
 var csvParser = csvParse();
 var Parser = require("jison").Parser;
+var utils = require('../../../src/commons/utils');
 
 
 function getStream(cb, name) {
@@ -114,12 +115,7 @@ module.exports =
     function (seconds) {
         "use strict";
         let recordCallback = function(){};
-        let lockPromise = {};
-        lockPromise.promise = new Promise((resolve, reject)=>{
-            "use strict";
-            lockPromise.resolve = resolve;
-            lockPromise.reject = reject;
-        });
+        let lockPromise = new utils.storePromise();
         return {header: new Promise((resolve, reject)=>{
             "use strict";
             let generator = spawn('java', ['-jar', __dirname+'/data-generator.jar', seconds]);
