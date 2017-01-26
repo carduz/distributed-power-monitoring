@@ -5,7 +5,8 @@
 let utils = require('../commons/utils');
 let client = require('socket.io-client');
 module.exports = class{
-    constructor(address) {
+    constructor(address, connectToWorkers) {
+        connectToWorkers = connectToWorkers==undefined?true:connectToWorkers;
         this.socket = client(address);
         this.workers = [];
         this._setWorkersPending = new utils.storePromise();
@@ -27,7 +28,8 @@ module.exports = class{
             if(data.type == 'default' && this.functionsSet)
                 return ;
             console.log('workers received');
-            this.workersConnectedPromise = this.connectToWorkers(data.data);//.then(data=>this.sendWorks(data));//this way to stay in class context
+            if(connectToWorkers)
+                this.workersConnectedPromise = this.connectToWorkers(data.data);
             this._setWorkersPending.resolve();
         });
     }

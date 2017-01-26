@@ -67,6 +67,7 @@ io.on('connection', (client)=>{
 
     client.on('set-functions',(functions)=>{
         //this is a sort of Promise.all
+        //TODO we don't have a confirmation from workers
         allFunctionsSet(()=>{
             clientWorkers = Object.keys(workers).filter(key=>+workers[key].order==0).map(key=>workers[key].getAddress());  //TODO bad way
             client.emit('workers', {type: 'set', data:clientWorkers});

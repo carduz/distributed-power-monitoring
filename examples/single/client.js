@@ -30,7 +30,7 @@ csv.header.then(keys=> {
         new functionClass('print'),
     ])//workers received (so property of next promise set)
         .then((type)=>client.workersConnectedPromise) //connected to all definitive workers
-        .then(()=>csv.onData((data)=>{client.sendWork(data)})); //set the callback to send data
+        .then(()=>csv.onData((data)=>client.sendWork(data))); //set the callback to send data
 });
 
 //"use strict" needed, since they are executed anonymously

@@ -3,50 +3,63 @@
  */
 "use strict";
 let csvStream = require('../commons/stream-generator/csvStream');
-let clientLib = require('../../src/client/clientLib');
-let functionClass = require('../../src/client/function');
-let pipeServer = require('../commons/process-pipe/server');
-let pipeClient = require('../commons/process-pipe/client').clientTerminal;
+let pipeClient = require('./pipeClient').clientTerminal;
+let pipeConfig = require('./pipeClient').configTerminal;
+let utils = require('../../src/commons/utils');
 if(process.argv.length != 5){
     console.error('Usage node init.js {master address} {seconds} {clients}');
     process.exit();
 }
 
-let clients = [];
+let numClients = parseInt(process.argv[4]);
+if(numClients <= 0){
+    console.error('clients must be >=1');
+    process.exit();
+}
 
-pipeClient(process.argv[2]).then((stream)=>{
-    clients.push(stream); //TODO a function that automaticall append \n or another delimiter
-    writer.write('tttt');
-    writer.write('tttt');
-    writer.write('tttt');
-});
-/*
+let configDone = new utils.storePromise();
+function onConfigData(data, stream){
+    data = data.toString();
+    console.log(data);
+    if(data == 'config_done') configDone.resolve();
+}
+
+function createClients(){
+    let clients = [];
+    for(let i = 0; i< numClients; i++)
+        clients.push(pipeClient(process.argv[2]));
+    return Promise.all(clients);
+}
+
+//TODO say that this is casually consistency
+
 //get stream of data
 let csv = csvStream(process.argv[3]);
 
 //get header
-csv.header.then(keys=> {
-    //TODO stop stream if the connection is closed
+Promise.all([
+    csv.header,
+    pipeConfig(process.argv[2], onConfigData),
+    createClients(),
+]).then(data=> {
+    let keys = data[0];
+    let configStream = data[1];
+    let clients = data[2];
+
+    //TODO stop stream and pipes if the connection is closed
     //get home numbers
     let rootKeys = Object.keys(keys).map(value=>value.split(' ')[1]);
-
-    //connect to client
-    let client = new clientLib(process.argv[2]);
-
-    //set functions
-    client.setFunctions([
-        new functionClass('map', [mapper+";return mapper(arguments[0]);"]),
-        new functionClass('shuffle', [], [rootKeys]),
-        new functionClass('reduce', [reducer+";return reducer(arguments[0], arguments[1]);", uniqueKey+";return uniqueKey(arguments[0], arguments[1]);"]),
-        new functionClass('print'),
-    ])
-        .then((type)=>client.workersConnectedPromise) //connected to all definitive workers
-        .then(()=>csv.onData((data)=>{client.sendWork(data)})); //set the callback to send data
+    configStream.write({config: rootKeys});
+    return Promise.all([
+        configDone, //we are sure that functions have been set
+        clients
+    ]);
+}).then(data=>{
+    let clients = data[1];
+    let i = 0;
+    //set the callback to send data
+    csv.onData((data)=>{
+        let client = clients[i++%numClients];
+        client.write(data)
+    });
 });
-
-
-//TODO do a thing like worker communication delte for client
-//TODO do a system to return data to client
-//TODO recalibrate network during operation?
-//TODO if master dies during transmision?
-*/

@@ -2,36 +2,36 @@
  * Created by claudio on 08/01/17.
  */
 "use strict";
-let csvStream = require('../commons/stream-generator/csvStream');
 let clientLib = require('../../src/client/clientLib');
+let pipeServer = require('../commons/process-pipe/server');
 let functionClass = require('../../src/client/function');
 if(process.argv.length != 4){
-    console.error('Usage node config.js {master address} {seconds}');
+    console.error('Usage node config.js {master address} {pipe}');
     process.exit();
 }
 
-//get stream of data
-let csv = csvStream(process.argv[3]);
+console.log('config');
+pipeServer(process.argv[3], (data, stream)=> {
+    if(data.config != undefined)
+        config(data).then(()=>stream.write('config_done'));
+});
+
 
 //get header
-csv.header.then(keys=> {
-    //TODO stop stream if the connection is closed
-    //get home numbers
-    let rootKeys = Object.keys(keys).map(value=>value.split(' ')[1]);
-
+function config(rootKeys){
     //connect to client
-    let client = new clientLib(process.argv[2]);
+    let client = new clientLib(process.argv[2], false);
+
+    //TODO close when init is closed
 
     //set functions
-    client.setFunctions([
-        new functionClass('map', [mapper+";return mapper(arguments[0]);"]),
+    return client.setFunctions([
+        new functionClass('map', [mapper + ";return mapper(arguments[0]);"]),
         new functionClass('shuffle', [], [rootKeys]),
-        new functionClass('reduce', [reducer+";return reducer(arguments[0], arguments[1]);", uniqueKey+";return uniqueKey(arguments[0], arguments[1]);"]),
+        new functionClass('reduce', [reducer + ";return reducer(arguments[0], arguments[1]);", uniqueKey + ";return uniqueKey(arguments[0], arguments[1]);"]),
         new functionClass('print'),
-    ])
-        .then((type)=>client.workersConnectedPromise) //connected to all definitive workers
-        .then(()=>csv.onData((data)=>{client.sendWork(data)})); //set the callback to send data
-});
+    ]);
+}
 
 //"use strict" needed, since they are executed anonymously
 function mapper(value){
@@ -84,9 +84,3 @@ function uniqueKey(value, require){
     let moment = require('moment');
     return value['key']+'-'+moment(value['value'][1]*1000).format('DD-MM-YYYY_HH');
 }
-
-
-//TODO do a thing like worker communication delte for client
-//TODO do a system to return data to client
-//TODO recalibrate network during operation?
-//TODO if master dies during transmision?

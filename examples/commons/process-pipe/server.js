@@ -3,15 +3,18 @@
  */
 "use strict";
 var net = require('net');
+let streamWrapper = require('./streamWrapper');
 
 module.exports = (sock, cb)=> {
-    var server = net.createServer((stream) => {
-        stream.on('data', (c) => {
-            cb(c.toString());
+    return new Promise((resolve, reject)=> {
+        var server = net.createServer((stream) => {
+            let wrapper = new streamWrapper(stream);
+            wrapper.onData(cb);
+            stream.on('end', () => {
+                server.close();
+            });
+            resolve(wrapper);
         });
-        stream.on('end', () => {
-            server.close();
-        });
+        server.listen(sock);
     });
-    server.listen(sock);
 };

@@ -3,7 +3,6 @@
  */
 "use strict";
 let clientLib = require('../../src/client/clientLib');
-const spawn = require('child_process').spawn;
 let pipeServer = require('../commons/process-pipe/server');
 if(process.argv.length != 4){
     console.error('Usage node client.js {master address} {pipe}');
@@ -11,6 +10,7 @@ if(process.argv.length != 4){
 }
 
 
+console.log('client');
 //needed for inter-process communication
 pipeServer(process.argv[3], (data)=>{
     console.log(data);
