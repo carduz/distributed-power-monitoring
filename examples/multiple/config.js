@@ -6,7 +6,7 @@ let csvStream = require('../commons/stream-generator/csvStream');
 let clientLib = require('../../src/client/clientLib');
 let functionClass = require('../../src/client/function');
 if(process.argv.length != 4){
-    console.error('Usage node client.js {master address} {seconds}');
+    console.error('Usage node config.js {master address} {seconds}');
     process.exit();
 }
 
@@ -28,7 +28,7 @@ csv.header.then(keys=> {
         new functionClass('shuffle', [], [rootKeys]),
         new functionClass('reduce', [reducer+";return reducer(arguments[0], arguments[1]);", uniqueKey+";return uniqueKey(arguments[0], arguments[1]);"]),
         new functionClass('print'),
-    ])//workers received (so property of next promise set)
+    ])
         .then((type)=>client.workersConnectedPromise) //connected to all definitive workers
         .then(()=>csv.onData((data)=>{client.sendWork(data)})); //set the callback to send data
 });
@@ -90,4 +90,3 @@ function uniqueKey(value, require){
 //TODO do a system to return data to client
 //TODO recalibrate network during operation?
 //TODO if master dies during transmision?
-//TODO use const or let instead of var, use also use strict always

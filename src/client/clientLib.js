@@ -8,7 +8,7 @@ module.exports = class{
     constructor(address) {
         this.socket = client(address);
         this.workers = [];
-        this.setWorkersPending = new utils.storePromise();
+        this._setWorkersPending = new utils.storePromise();
         this.workersConnectedPromise = null;
         this.functionsSet = false;
 
@@ -28,15 +28,19 @@ module.exports = class{
                 return ;
             console.log('workers received');
             this.workersConnectedPromise = this.connectToWorkers(data.data);//.then(data=>this.sendWorks(data));//this way to stay in class context
-            this.setWorkersPending.resolve();
+            this._setWorkersPending.resolve();
         });
     }
 
     setFunctions(functions){
         this.functionsSet = true;
-        this.setWorkersPending.fresh();
+        this._setWorkersPending.fresh();
         this.socket.emit('set-functions', functions);
-        return this.setWorkersPending.promise;
+        return this._setWorkersPending.promise;
+    }
+
+    get setWorkersPending(){
+        return _setWorkersPending;
     }
 
     //TODO if this is call again before it is resolved the connections are taken two times (since the nex execution doens't know that there is an attempt. maybe there should be a register of attempts
