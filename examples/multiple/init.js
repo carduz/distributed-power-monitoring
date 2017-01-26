@@ -20,7 +20,6 @@ if(numClients <= 0){
 
 let configDone = new utils.storePromise();
 function onConfigData(data, stream){
-    data = data.toString();
     console.log(data);
     if(data == 'config_done') configDone.resolve();
 }
@@ -52,7 +51,7 @@ Promise.all([
     let rootKeys = Object.keys(keys).map(value=>value.split(' ')[1]);
     configStream.write({config: rootKeys});
     return Promise.all([
-        configDone, //we are sure that functions have been set
+        configDone.promise, //we are sure that functions have been set
         clients
     ]);
 }).then(data=>{
