@@ -77,6 +77,7 @@ module.exports = class {
         }
     }
 
+    //TODO what if this is called again before the previous is completed?
     allFunctionsSet(cb) {
         let toConsume = this.workers.keys;
         this.workers.forEach((worker, key)=>{
