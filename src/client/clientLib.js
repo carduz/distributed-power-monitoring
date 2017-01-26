@@ -7,6 +7,8 @@ let client = require('socket.io-client');
 module.exports = class{
     constructor(address, dataFunction) {
         this.socket = client(address);
+        this.workers = [];
+        this.setFunctionsPending = new utils.storePromise();
         this.dataFunction = dataFunction;
 
         this.socket.on('event', (data)=>{});
@@ -20,15 +22,18 @@ module.exports = class{
             this.socket.emit('client');
         });
 
-        this.workers = [];
         this.socket.on('workers', (data)=>{
             console.log('workers received');
-            this.connectToWorkers(data).then(data=>this.sendWorks(data));//this way to stay in class contex
+            if(data.type=='set')
+                this.setFunctionsPending.resolve();
+            this.connectToWorkers(data.data).then(data=>this.sendWorks(data));//this way to stay in class contex
         });
     }
 
     setFunctions(functions){
+        this.setFunctionsPending.fresh();
         this.socket.emit('set-functions', functions);
+        return this.setFunctionsPending.promise;
     }
 
     connectToWorkers(data){

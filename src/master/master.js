@@ -26,6 +26,7 @@ class Worker{
 
 //TODO do this thing based on real address, a sort of map realAddress -> portCounter
 let portCounter = BASE_PORT+1;
+let clientWorkers = [];
 io.on('connection', (client)=>{
     let id = client.id;
     let worker = false;
@@ -54,20 +55,21 @@ io.on('connection', (client)=>{
         emitAllWorkers('worker', 'add', id, tmpWorker.getAddress());
         workers[id] = tmpWorker;
         client.emit('port', {port:port, id: id});
-        client.emit('function', setFunction()(workers[id])); //set function in a bad way
+        client.emit('function', setFunction()(workers[id]));
     });
     client.on('function set',()=> {
         workers[id].functionSetCB(); //this way to call the new version of functionSetCB
     });
 
     client.on('client',(functions)=>{
-        //TODO send old functions?
+        client.emit('workers', {type:'default', data: clientWorkers});
     });
 
     client.on('set-functions',(functions)=>{
         //this is a sort of Promise.all
         allFunctionsSet(()=>{
-            client.emit('workers', Object.keys(workers).filter(key=>+workers[key].order==0).map(key=>workers[key].getAddress())); //bad way
+            clientWorkers = Object.keys(workers).filter(key=>+workers[key].order==0).map(key=>workers[key].getAddress());  //TODO bad way
+            client.emit('workers', {type: 'set', data:clientWorkers});
         });
         assignFunctions(functions);
     });
