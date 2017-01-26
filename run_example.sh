@@ -8,4 +8,4 @@ done
 
 sleep 3
 
-node examples/1/client.js  http://localhost:3000 10000
+node examples/single/client.js  http://localhost:3000 10000

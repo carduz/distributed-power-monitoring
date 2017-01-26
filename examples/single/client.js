@@ -9,19 +9,28 @@ if(process.argv.length != 4){
     console.error('Usage node client.js {master address} {seconds}');
     process.exit();
 }
+
+//get stream of data
 let csv = csvStream(process.argv[3]);
+
+//get header
 csv.header.then(keys=> {
     //TODO stop stream if the connection is closed
+    //get home numbers
     let rootKeys = Object.keys(keys).map(value=>value.split(' ')[1]);
+
+    //connect to client
     let client = new clientLib(process.argv[2]);
+
+    //set functions
     client.setFunctions([
         new functionClass('map', [mapper+";return mapper(arguments[0]);"]),
         new functionClass('shuffle', [], [rootKeys]),
         new functionClass('reduce', [reducer+";return reducer(arguments[0], arguments[1]);", uniqueKey+";return uniqueKey(arguments[0], arguments[1]);"]),
         new functionClass('print'),
     ])
-        .then((type)=>client.workersConnectedPromise)
-        .then(()=>csv.onData((data)=>{client.sendWork(data)}));
+        .then((type)=>client.workersConnectedPromise) //connected to all definitive workers
+        .then(()=>csv.onData((data)=>{client.sendWork(data)})); //set the callback to send data
 });
 
 //"use strict" needed, since they are executed anonymously

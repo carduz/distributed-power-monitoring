@@ -39,6 +39,9 @@ module.exports = class{
         return this.setWorkersPending.promise;
     }
 
+    //TODO if this is call again before it is resolved the connections are taken two times (since the nex execution doens't know that there is an attempt. maybe there should be a register of attempts
+    //TODO if connections fail?
+    //TODO catch?
     connectToWorkers(data){
         "use strict";
         return Promise.all(data.map((value)=>{
