@@ -12,15 +12,16 @@ if(process.argv.length != 4){
 let csv = csvStream(process.argv[3]);
 csv.header.then(keys=> {
     //TODO stop stream if the connection is closed
-    //console.log('keys', keys);
     let rootKeys = Object.keys(keys).map(value=>value.split(' ')[1]);
-    let client = new clientLib(process.argv[2], csv.onData);
+    let client = new clientLib(process.argv[2]);
     client.setFunctions([
         new functionClass('map', [mapper+";return mapper(arguments[0]);"]),
         new functionClass('shuffle', [], [rootKeys]),
         new functionClass('reduce', [reducer+";return reducer(arguments[0], arguments[1]);", uniqueKey+";return uniqueKey(arguments[0], arguments[1]);"]),
         new functionClass('print'),
-    ]);
+    ])
+        .then((type)=>client.workersConnectedPromise)
+        .then(()=>csv.onData((data)=>{client.sendWork(data)}));
 });
 
 //"use strict" needed, since they are executed anonymously

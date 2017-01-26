@@ -5,11 +5,12 @@
 let utils = require('../commons/utils');
 let client = require('socket.io-client');
 module.exports = class{
-    constructor(address, dataFunction) {
+    constructor(address) {
         this.socket = client(address);
         this.workers = [];
-        this.setFunctionsPending = new utils.storePromise();
-        this.dataFunction = dataFunction;
+        this.setWorkersPending = new utils.storePromise();
+        this.workersConnectedPromise = null;
+        this.functionsSet = false;
 
         this.socket.on('event', (data)=>{});
         this.socket.on('disconnect', ()=>{
@@ -23,17 +24,19 @@ module.exports = class{
         });
 
         this.socket.on('workers', (data)=>{
+            if(data.type == 'default' && this.functionsSet)
+                return ;
             console.log('workers received');
-            if(data.type=='set')
-                this.setFunctionsPending.resolve();
-            this.connectToWorkers(data.data).then(data=>this.sendWorks(data));//this way to stay in class contex
+            this.workersConnectedPromise = this.connectToWorkers(data.data);//.then(data=>this.sendWorks(data));//this way to stay in class context
+            this.setWorkersPending.resolve();
         });
     }
 
     setFunctions(functions){
-        this.setFunctionsPending.fresh();
+        this.functionsSet = true;
+        this.setWorkersPending.fresh();
         this.socket.emit('set-functions', functions);
-        return this.setFunctionsPending.promise;
+        return this.setWorkersPending.promise;
     }
 
     connectToWorkers(data){
@@ -51,7 +54,6 @@ module.exports = class{
             this.workers=data;
             console.log('connected to workers');
         });
-
     }
 
     //TODO load balancer "worker"
@@ -60,13 +62,11 @@ module.exports = class{
     //TODO sync with init, don't recall on change workers but adapat itself
     //TODO how to get the answer? maybe the master should have a list of tasks
     //TODO close all at the end
-    sendWorks(){
+    sendWork(data){
         "use strict";
-        let i = 0;
+        this.worksStatus = this.worksStatus || 0;
+        let i = this.worksStatus;
         let num = this.workers.length;
-        //TODO header in stderr
-        this.dataFunction((record)=>{
-            this.workers[i++%num].connection.emit('job', record);
-        });
+        this.workers[i++%num].connection.emit('job', data);
     }
 };
