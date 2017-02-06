@@ -63,3 +63,5 @@ Promise.all([
         client.write(data)
     });
 });
+
+//TODO set onClose

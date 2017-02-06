@@ -10,6 +10,10 @@ module.exports.connectPromise = (address)=>{
             clientIO.on('connect', ()=> {
                 resolve({address: address, connection: clientIO});
             });
+            clientIO.on('disconnect', ()=> {
+                console.log('connection closed by the worker');
+                clientIO.close();
+            });
         });
     };
 

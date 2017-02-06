@@ -13,11 +13,13 @@ module.exports = class{
         this._setWorkersPending = new utils.storePromise();
         this.workersConnectedPromise = null;
         this.functionsSet = false;
+        this._onClose = null;
 
         this.socket.on('event', (data)=>{});
         this.socket.on('disconnect', ()=>{
             console.log('connection closed by the server');
             this.socket.close();
+            this.closed();
         });
 
         this.socket.on('connect', ()=>{
@@ -35,9 +37,19 @@ module.exports = class{
         });
     }
 
+    closed(){
+        if(typeof(this._onClose) == 'function')
+            this._onClose();
+    }
+
+    onClose(cb){
+        this._onClose = cb;
+    }
+
     close(){
         console.log('connection closed by the client');
         this.socket.close();
+        this.closed();
     }
 
     setFunctions(functions){
@@ -53,7 +65,8 @@ module.exports = class{
 
     //TODO if this is call again before it is resolved the connections are taken two times (since the nex execution doens't know that there is an attempt. maybe there should be a register of attempts
     //TODO if connections fail?
-    //TODO catch?
+    //TODO catch? (promise)
+    //set callback to delete workers from list when the connection is closed
     //wait to send new data
     connectToWorkers(data){
         "use strict";
@@ -73,12 +86,6 @@ module.exports = class{
         });
     }
 
-    //TODO load balancer "worker"
-    //TODO insert try...catch to avoid problems
-
-    //TODO sync with init, don't recall on change workers but adapat itself
-    //TODO how to get the answer? maybe the master should have a list of tasks
-    //TODO close all at the end
     /**
      *
      * @param data
@@ -86,14 +93,18 @@ module.exports = class{
      */
     sendWork(data){
         "use strict";
-        //TODO error fi there are no workers available?
-        let num = this.workers.length;
-        if(num == 0){
-            console.error('No workers available');
-            return false;
+        //TODO error if there are no workers available?
+        try {
+            let num = this.workers.length;
+            if (num == 0) {
+                console.error('No workers available');
+                return false;
+            }
+            let i = this.worksStatus;
+            this.workers[i++ % num].connection.emit('job', data);
+        }catch(e){
+            console.error(e.stack);
         }
-        let i = this.worksStatus;
-        this.workers[i++%num].connection.emit('job', data);
         return true;
     }
 };

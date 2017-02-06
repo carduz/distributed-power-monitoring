@@ -116,25 +116,36 @@ module.exports =
         "use strict";
         let recordCallback = function(){};
         let lockPromise = new utils.storePromise();
-        return {header: new Promise((resolve, reject)=>{
+        let generator = null;
+        let dataPromise = new Promise((resolve, reject)=>{
             "use strict";
-            let generator = spawn('java', ['-jar', __dirname+'/data-generator.jar', seconds]);
+            generator = spawn('java', ['-jar', __dirname+'/data-generator.jar', seconds]);
             let data = '';
             let solved = false;
             generator.stderr.pipe(getStream(chunk=>data+=chunk.toString(), 'header'));
             generator.stdout.pipe(csvParser)
                 .pipe(locker(()=>{//lock data until the header is correctly set
-                if(!solved){
-                    solved = true;
-                    resolve(parseKeys(data));
-                }
-            }, lockPromise.promise))
+                    if(!solved){
+                        solved = true;
+                        resolve(parseKeys(data));
+                    }
+                }, lockPromise.promise))
                 .pipe(getStream(record=>recordCallback(record), 'data')); //this way to call the new version of recordCallback
-        }),
-            onData: function(cb){
+        });
+        return {header: dataPromise,
+            onData(cb){
                 "use strict";
                 recordCallback = cb;
                 lockPromise.resolve();
+            },
+            kill(){
+                if(generator != null)
+                    generator.kill('SIGHUP');
+            },
+            onClose(cb){
+                dataPromise.then(()=>{
+                    generator.on('close', cb);
+                })
             }
         };
     };

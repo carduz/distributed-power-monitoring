@@ -15,12 +15,13 @@ let csv = csvStream(process.argv[3]);
 
 //get header
 csv.header.then(keys=> {
-    //TODO stop stream if the connection is closed
     //get home numbers
     let rootKeys = Object.keys(keys).map(value=>value.split(' ')[1]);
 
     //connect to client
     let client = new clientLib(process.argv[2]);
+    //csv.onClose(()=>client.close()); //TODO fix, this doens't work for small time (the connection is not established yet)
+    client.onClose(csv.kill());
 
     //set functions
     exampleFunctions(client, rootKeys)//workers received (so property of next promise set)
@@ -29,8 +30,6 @@ csv.header.then(keys=> {
 });
 
 
-//TODO do a thing like worker communication delte for client
-//TODO do a system to return data to client
 //TODO recalibrate network during operation?
 //TODO if master dies during transmision?
 //TODO use const or let instead of var, use also use strict always
