@@ -35,6 +35,11 @@ module.exports = class{
                 this.workersConnectedPromise = this.connectToWorkers(data.data);
             this._setWorkersPending.resolve();
         });
+
+        this.socket.on('custom-error', (data)=>{
+            console.error(data);
+            this.close();
+        });
     }
 
     closed(){

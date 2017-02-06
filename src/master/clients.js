@@ -26,7 +26,12 @@ module.exports = (ioClients, workers)=>{
                 clientWorkers = workers.addressesAtLevel(0);
                 ioClients.emit('workers', {type: 'set', data:clientWorkers});
             });
-            setFunctions.assignFunctions(functions);
+            try {
+                setFunctions.assignFunctions(functions);
+            }catch(e){
+                client.emit('custom-error', e.message);
+                setFunctions.clearFunctionSetCb();
+            }
         });
     });
 };

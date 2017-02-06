@@ -37,7 +37,7 @@ module.exports = class {
     assignFunctions(functionsNames){
         let functionsWithWorkers = [];
         if(this.workers.length < functionsNames.length)
-            throw new Error('Insufficient workers');//TODO emit to client, don't kill everything
+            throw new Error('Insufficient workers');
 
         functionsWithWorkers = functionsNames.map(value=>{return {functionName: value, workers: []};});
         //assign workers, if the number of workers per function is not the same priority is given to the firsts functions
@@ -88,6 +88,12 @@ module.exports = class {
                 if(!toConsume.length)
                     cb();
             }
+        });
+    }
+
+    clearFunctionSetCb(){
+        this.workers.forEach((worker, key)=>{
+            worker.functionSetCB = ()=>{};
         });
     }
 };
