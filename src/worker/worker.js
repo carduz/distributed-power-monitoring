@@ -86,7 +86,7 @@ socket.on('function', (data)=>{
                         if(toConnect == 0)
                             workers[next].emit('job', nextData);
                         else
-                            connectPromise.then(()=>workers[next].emit('job', nextData));
+                            connectPromise.promise.then(()=>workers[next].emit('job', nextData));
                 }
             }catch(e)
             {
