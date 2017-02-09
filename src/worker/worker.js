@@ -48,13 +48,21 @@ socket.on('port', (data)=>{
 });
 let dataReceived;
 
+let toConnect = 0;
+let connectPromise = new utils.storePromise();
 socket.on('worker', (type, id, address)=>{
     console.log('Worker', type, id);
     if(type == 'delete') {
         workers[id].close();
         delete workers[id];
     }else{
+        toConnect++;
         utils.connectPromise(address).then((value)=>{
+            toConnect--;
+            if(toConnect == 0){
+                connectPromise.resolve();
+                connectPromise.fresh();
+            }
             workers[id] = value.connection; //ID of master is used
         });
     }
@@ -75,7 +83,10 @@ socket.on('function', (data)=>{
                     //TODO wait if next worker is not present, maybe a queue is a solution, check also if it exists
                     //TODO with a lot of workers soemtimes workers[next] = undefined
                     if (next)
-                        workers[next].emit('job', nextData);
+                        if(toConnect == 0)
+                            workers[next].emit('job', nextData);
+                        else
+                            connectPromise.then(()=>workers[next].emit('job', nextData));
                 }
             }catch(e)
             {
