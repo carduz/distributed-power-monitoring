@@ -56,8 +56,13 @@ module.exports = {
         let keysPerWorker = Math.floor(keys.length/workers.length);
         if(keysPerWorker<1)
             keysPerWorker = 1;
+        //I can have #workers>#keys or #keys>#workers
         workers.forEach(value=>{
-            value.info.keys = keys.splice(0, Math.min(keysPerWorker, keys.length));
+            value.info.keys = [];
+        });
+        let workerCounter = 0;
+        keys.forEach(value=>{
+            workers[workerCounter++%workers.length].info.keys.push(value);
         });
     }, (done, worker, data, parameters)=>{
         "use strict";
