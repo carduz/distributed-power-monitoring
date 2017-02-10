@@ -21,7 +21,7 @@ csv.header.then(keys=> {
     //connect to client
     let client = new clientLib(process.argv[2]);
     //csv.onClose(()=>client.close()); //TODO fix, this doens't work for small time (the connection is not established yet)
-    client.onClose(csv.kill());
+    //client.onClose(csv.kill()); //TODO fix, the connection is closed after few time
 
     //set functions
     exampleFunctions(client, rootKeys)//workers received (so property of next promise set)
